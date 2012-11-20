@@ -1,0 +1,99 @@
+<html>
+<head>
+	<title>WebGL Tutorial 1</title>
+	<script src="../webgl-utils.js"></script>
+	<script id="2d-vertex-shader" type="x-shader/x-vertex">
+		attribute vec2 a_position;
+
+		uniform vec2 u_resolution;
+
+		void main () {
+			vec2 zeroToOne = a_position / u_resolution;
+
+			vec2 zeroToTwo = zeroToOne * 2.0;
+
+			vec2 clipSpace = zeroToTwo - 1.0;
+
+			gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+		}
+	</script>
+
+	<script id="2d-fragment-shader" type="x-shader/x-fragment">
+		precision mediump float;
+
+		uniform vec4 u_color;
+
+		void main () {
+			gl_FragColor = u_color;
+		}
+	</script>
+	<script>
+		window.addEventListener("load", function () {
+			var canvas,
+				gl,
+				vertexShader,
+				fragmentShader,
+				program,
+				buffer,
+				resolutionLocation,
+				positionLocation,
+				colorLocation;
+
+			canvas = document.querySelector('canvas');
+			gl = canvas.getContext("experimental-webgl");
+
+			vertexShader = createShaderFromScriptElement(gl, "2d-vertex-shader");
+			fragmentShader = createShaderFromScriptElement(gl, "2d-fragment-shader");
+			program = createProgram(gl, [vertexShader, fragmentShader]);
+			gl.useProgram(program);
+
+			positionLocation = gl.getUniformLocation(program, "a_position");
+			resolutionLocation = gl.getUniformLocation(program, "u_resolution");
+			colorLocation = gl.getUniformLocation(program, "u_color");
+
+			gl.uniform2f(resolutionLocation, canvas.width, canvas.height);
+
+
+			buffer = gl.createBuffer();
+			gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+
+			gl.enableVertexAttribArray(positionLocation);
+			gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+			for (var i =0; i < 50; ++i) {
+				setRectangle(
+					gl, randomInt(300), randomInt(300), randomInt(300), randomInt(300)
+				);
+
+				gl.uniform4f(colorLocation, Math.random(), Math.random(), Math.random(), 1);
+
+				gl.drawArrays(gl.TRIANGLE_STRIP, 0, 6);
+			}
+		});
+
+		function randomInt (range) {
+			return Math.floor(Math.random() * range);
+		}
+
+		function setRectangle(gl, x, y, width, height) {
+			var x1 = x;
+			var x2 = x + width;
+			var y1 = y;
+			var y2 = y + height;
+			gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+				x1, y1,
+				x2, y1,
+				x1, y2,
+				x1, y2,
+				x2, y1,
+				x2, y2
+			]), gl.STATIC_DRAW);
+		}
+	</script>
+</head>
+<body>
+
+	<canvas width="500" height="500">
+
+</body>
+</html>
